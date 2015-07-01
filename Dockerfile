@@ -14,7 +14,7 @@ RUN apt-get install -y curl
 # Install Meteor
 RUN curl https://install.meteor.com | sh
 
-WORKDIR /home/demo
+WORKDIR /home/app
 
 # Install Application
 ADD app app
