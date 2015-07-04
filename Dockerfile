@@ -1,33 +1,22 @@
-# Simple Dockerfile for meteor
-# https://bulletproofmeteor.com/architecture/docker-and-meteor
-# https://coreos.com/using-coreos/containers
+# https://registry.hub.docker.com/u/phusion/passenger-customizable/
+# https://github.com/phusion/passenger-docker
+FROM phusion/passenger-customizable
 
-# DOCKER-VERSION 1.7.0
-# METEOR-VERSION 1.1.0.2
-# UBUNTU-VERSION 14
-FROM ubuntu:trusty
+# Set correct environment variables
+ENV HOME /root
 
-RUN apt-get update
-RUN apt-get -y dist-upgrade
-RUN apt-get install -y curl
+# Disable ssh on container
+RUN rm -rf /etc/service/sshd /etc/my_init.d/00_regen_ssh_host_keys.sh
+
+# Use baseimage-docker's init system
+CMD ["/sbin/my_init"]
+
+# Install Node (last version, from node source repo)
+RUN curl -sL https://deb.nodesource.com/setup | sudo bash -
+RUN sudo apt-get install -y build-essential nodejs
 
 # Install Meteor
-RUN curl https://install.meteor.com | sh
+RUN curl https://install.meteor.com/ | sh
 
-WORKDIR /home/app
-
-# Install Application
-ADD app app
-
-# Install entrypoint
-ADD entrypoint.sh /usr/bin/entrypoint.sh
-RUN chmod +x /usr/bin/entrypoint.sh
-
-EXPOSE 3000
-
-# TODO(burdon): Separate dockerfile for meteor image? (since meteor install takes so long.)
-
-# Start-up
-# http://stackoverflow.com/questions/21553353/what-is-the-difference-between-cmd-and-entrypoint-in-a-dockerfile
-ENTRYPOINT ["/usr/bin/entrypoint.sh"]
-CMD []
+# Clean up APT and /tmp when done
+RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
